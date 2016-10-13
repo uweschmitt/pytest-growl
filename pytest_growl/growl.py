@@ -1,7 +1,13 @@
 import time
 import socket
 import struct
-from cStringIO import StringIO
+
+try:
+    from cStringIO import StringIO
+    range = xrange
+except ImportError:
+    from io import BytesIO as StringIO
+
 from hashlib import md5
 try:
     import gntp.notifier
@@ -73,7 +79,7 @@ class SignedStructStream(object):
     def writeBuffer(self, buff, sign=True):
         if sign:
             self._hash.update(buff)
-        self._stream.write(buff)
+        self._stream.write(bytes(buff))
 
     def sign(self):
         self.writeBuffer(self._hash.digest(), sign=False)
@@ -99,7 +105,7 @@ def brp(application_name, notifications):
     for notification in notifications:
         returned.write("!H", len(notification))
         returned.writeBuffer(notification.encode('utf-8'))
-    for i in xrange(len(notifications)):
+    for i in range(len(notifications)):
         returned.write("b", i)
     returned.sign()
     return returned.getvalue()
